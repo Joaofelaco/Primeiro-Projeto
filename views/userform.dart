@@ -12,43 +12,47 @@ class UserForm extends StatefulWidget {
 
 class _UserFormState extends State<UserForm> {
   final _form = GlobalKey<FormState>();
-
   final Map<String, String> _formData = {};
-
-  void _loadFormData(User user) async {
-    //puxa os dados dos usuarios cadastrados no banco de dados acessados
-    _formData['id'] = user.id!;
-    _formData['nome'] = user.nome;
-    _formData['E-mail'] = user.email;
-    _formData['avatarUrl'] = user.avatarUrl;
-    _formData['telefone'] = user.telefone;
-    _formData['endereço'] = user.endereco;
-    _formData['Cpf'] = user.cpf;
-  }
+  bool _isInit = true; 
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    if (_isInit) {
+      final arguments = ModalRoute.of(context)?.settings.arguments;
+      if (arguments != null) {
+        final user = arguments as User;
+        _loadFormData(user);
+      }
+    }
+    _isInit = false;
+  }
 
-    final user = ModalRoute.of(context)?.settings.arguments as User;
-    _loadFormData(user);
+  void _loadFormData(User user) {
+    
+    _formData['id'] = user.id ?? ''; 
+    _formData['nome'] = user.nome;
+    _formData['email'] = user.email; 
+    _formData['avatarUrl'] = user.avatarUrl;
+    _formData['telefone'] = user.telefone; 
+    _formData['endereco'] = user.endereco; 
+    _formData['cpf'] = user.cpf; 
   }
 
   @override
   Widget build(BuildContext context) {
-    final user = ModalRoute.of(context)?.settings.arguments as User;
-
-    _loadFormData(user);
+    // final user = ModalRoute.of(context)?.settings.arguments as User?;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Cadastro de Clientes'),
+        title: _formData['id'] != null && _formData['id']!.isNotEmpty
+            ? const Text('Editar Cliente')
+            : const Text('Cadastro de Clientes'),
         actions: <Widget>[
           IconButton(
             icon: const Icon(Icons.save),
-            onPressed: () async {
-              //o que acontece no botão de salvar
-              final isValid = _form.currentState!.validate();
+            onPressed: () {
+              final isValid = _form.currentState?.validate() ?? false;
 
               if (isValid) {
                 _form.currentState!.save();
@@ -57,14 +61,13 @@ class _UserFormState extends State<UserForm> {
                   User(
                     id: _formData['id'],
                     nome: _formData['nome']!,
-                    email: _formData['E-mail']!,
+                    email: _formData['email']!, 
                     avatarUrl: _formData['avatarUrl']!,
-                    endereco: _formData['Endereço']!,
-                    telefone: _formData['Telefone']!,
-                    cpf: _formData['Cpf']!,
+                    endereco: _formData['endereco']!, 
+                    telefone: _formData['telefone']!, 
+                    cpf: _formData['cpf']!, 
                   ),
                 );
-
                 Navigator.of(context).pop();
               }
             },
@@ -72,114 +75,143 @@ class _UserFormState extends State<UserForm> {
         ],
       ),
       body: Padding(
-        //partes para aceitar no formulario o numero correto de letras
-        padding: const EdgeInsets.all(15),
+        padding: const EdgeInsets.all(16.0), 
         child: Form(
           key: _form,
           child: SingleChildScrollView(
             child: Column(
-              children: [
-                TextFormField(
+              children: <Widget>[
+                _buildTextFormField(
                   initialValue: _formData['nome'],
-                  decoration: const InputDecoration(labelText: 'Nome'),
+                  labelText: 'Nome Completo',
+                  hintText: 'Digite o nome completo',
+                  onSaved: (value) => _formData['nome'] = value!,
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
                       return 'Nome inválido';
                     }
-
                     if (value.trim().length < 3) {
                       return 'Nome muito pequeno. No mínimo 3 letras.';
                     }
-
                     return null;
                   },
-                  onSaved: (value) => _formData['nome'] = value!,
                 ),
-                TextFormField(
-                  initialValue: _formData['E-mail'],
-                  decoration: const InputDecoration(labelText: 'E-mail'),
+                const SizedBox(height: 16), 
+                _buildTextFormField(
+                  initialValue: _formData['email'],
+                  labelText: 'E-mail',
+                  hintText: 'exemplo@dominio.com',
+                  keyboardType: TextInputType.emailAddress,
+                  onSaved: (value) => _formData['email'] = value!, 
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
                       return 'E-mail inválido';
                     }
-
+                    if (!value.contains('@') || !value.contains('.')) {
+                        return 'E-mail com formato inválido.';
+                    }
                     if (value.trim().length < 5) {
-                      return 'Nome muito pequeno. No mínimo 5 letras.';
+                      return 'E-mail muito pequeno. No mínimo 5 caracteres.';
                     }
-
                     return null;
                   },
-                  onSaved: (value) => _formData['E-mail'] = value!,
                 ),
-                TextFormField(
+                const SizedBox(height: 16), 
+                _buildTextFormField(
                   initialValue: _formData['avatarUrl'],
-                  decoration: const InputDecoration(labelText: 'URL do Avatar'),
+                  labelText: 'URL do Avatar',
+                  hintText: 'http://.../imagem.png',
+                  onSaved: (value) => _formData['avatarUrl'] = value!, 
                   validator: (value) {
+                    // Validação básica de URL (pode ser melhorada)
+                    bool isValidUrl = Uri.tryParse(value ?? '')?.hasAbsolutePath ?? false;
                     if (value == null || value.trim().isEmpty) {
-                      return 'Url inválido';
+                        return 'URL inválida';
                     }
-
-                    if (value.trim().length < 20) {
-                      return 'Url muito pequeno. No mínimo 20 letras.';
-                    }
-
+                    if (!isValidUrl) {
+                        return 'Por favor, insira uma URL válida.';
+                    }                    
                     return null;
                   },
-                  onSaved: (value) => _formData['Url'] = value!,
                 ),
-                TextFormField(
-                  initialValue: _formData['endereço'],
-                  decoration: const InputDecoration(labelText: 'Endereço'),
+                const SizedBox(height: 16), 
+                _buildTextFormField(
+                  initialValue: _formData['endereco'],
+                  labelText: 'Endereço',
+                  hintText: 'Rua, Número, Bairro, Cidade',
+                  onSaved: (value) => _formData['endereco'] = value!, /
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
                       return 'Endereço inválido';
                     }
-
                     if (value.trim().length < 6) {
                       return 'Endereço muito pequeno. No mínimo 6 letras.';
                     }
-
                     return null;
                   },
-                  onSaved: (value) => _formData['Endereço'] = value!,
                 ),
-                TextFormField(
+                const SizedBox(height: 16), 
+                _buildTextFormField(
                   initialValue: _formData['telefone'],
-                  decoration: const InputDecoration(labelText: 'Telefone'),
+                  labelText: 'Telefone',
+                  hintText: '(XX) XXXXX-XXXX',
+                  keyboardType: TextInputType.phone,
+                  onSaved: (value) => _formData['telefone'] = value!, 
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
                       return 'Telefone inválido';
                     }
-
-                    if (value.trim().length < 8) {
-                      return 'Falta numeros. No mínimo 8 numeros.';
+                    if (value.trim().length < 8) { 
+                      return 'Número de telefone muito curto.';
                     }
-
                     return null;
                   },
-                  onSaved: (value) => _formData['Telefone'] = value!,
                 ),
-                TextFormField(
-                  initialValue: _formData['Cpf'],
-                  decoration: const InputDecoration(labelText: 'Cpf'),
+                const SizedBox(height: 16), 
+                _buildTextFormField(
+                  initialValue: _formData['cpf'],
+                  labelText: 'CPF',
+                  hintText: '000.000.000-00',
+                  keyboardType: TextInputType.number,
+                  onSaved: (value) => _formData['cpf'] = value!, 
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
-                      return 'Cpf inválido';
+                      return 'CPF inválido';
                     }
-
-                    if (value.trim().length < 11) {
-                      return 'Cpf muito pequeno. No mínimo 11 numeros.';
+                    if (value.trim().replaceAll(RegExp(r'[^0-9]'), '').length != 11) {
+                      return 'CPF deve conter 11 dígitos.';
                     }
-
                     return null;
                   },
-                  onSaved: (value) => _formData['Cpf'] = value!,
                 ),
+                const SizedBox(height: 24), 
               ],
             ),
           ),
         ),
       ),
+    );
+  }
+
+  
+  Widget _buildTextFormField({
+    String? initialValue,
+    required String labelText,
+    String? hintText,
+    required FormFieldSetter<String> onSaved,
+    required FormFieldValidator<String> validator,
+    TextInputType? keyboardType = TextInputType.text,
+  }) {
+    return TextFormField(
+      initialValue: initialValue,
+      decoration: InputDecoration(
+        labelText: labelText,
+        hintText: hintText,
+        
+      ),
+      keyboardType: keyboardType,
+      onSaved: onSaved,
+      validator: validator,
     );
   }
 }
