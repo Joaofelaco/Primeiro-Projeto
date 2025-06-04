@@ -1,3 +1,4 @@
+// main.dart
 import 'package:appmae/routes/approutes.dart';
 import 'package:appmae/views/userform.dart';
 import 'package:flutter/material.dart';
@@ -12,7 +13,7 @@ void main() {
 class Myapp extends StatelessWidget {
   const Myapp({Key? key}) : super(key: key);
 
-  get http => null;
+  
 
   @override
   Widget build(BuildContext context) {
@@ -27,6 +28,44 @@ class Myapp extends StatelessWidget {
         theme: ThemeData(
           primarySwatch: Colors.deepPurple,
           visualDensity: VisualDensity.adaptivePlatformDensity,
+          appBarTheme: AppBarTheme(
+            backgroundColor: Colors.deepPurple, 
+            foregroundColor: Colors.white, 
+            elevation: 2.0, 
+          ),
+          
+          colorScheme: ColorScheme.fromSwatch(
+            primarySwatch: Colors.deepPurple,
+            accentColor: Colors.amber, 
+            brightness: Brightness.light,
+          ).copyWith(
+            error: Colors.red.shade700, 
+          ),
+          
+          inputDecorationTheme: InputDecorationTheme(
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8.0),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8.0),
+              borderSide: BorderSide(color: Colors.deepPurple.shade700, width: 2.0),
+            ),
+            labelStyle: TextStyle(color: Colors.deepPurple.shade700),
+          ),
+          
+          elevatedButtonTheme: ElevatedButtonThemeData(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.deepPurple,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              textStyle: const TextStyle(fontSize: 16),
+            ),
+          ),
+          textButtonTheme: TextButtonThemeData(
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.deepPurple.shade700,
+            )
+          )
         ),
         routes: {
           AppRoutes.HOME: (_) => const UserList(),
