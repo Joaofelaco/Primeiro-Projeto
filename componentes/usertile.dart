@@ -14,20 +14,34 @@ class UserTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (user == null) {      
+      return const SizedBox.shrink();
+    }
+
     final avatar = user!.avatarUrl.isEmpty
-        ? const CircleAvatar(child: Icon(Icons.person))
+        ? CircleAvatar(
+            backgroundColor: Theme.of(context).primaryColorLight,
+            child: Icon(
+              Icons.person,
+              color: Theme.of(context).primaryColorDark, 
+            ))
         : CircleAvatar(backgroundImage: NetworkImage(user!.avatarUrl));
+
     return ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0), 
         leading: avatar,
-        title: Text(user!.nome),
+        title: Text(user!.nome, style: const TextStyle(fontWeight: FontWeight.w500)), 
         subtitle: Text(user!.telefone),
         trailing: SizedBox(
-          width: 100,
+          width: 100, 
           child: Row(
+            mainAxisAlignment: MainAxisAlignment.end, // Alinhar ícones ao final
             children: [
               IconButton(
                 icon: const Icon(Icons.edit),
-                color: Colors.red,
+                // color: Colors.orange.shade700, 
+                color: Theme.of(context).primaryColorDark, 
+                tooltip: 'Editar', 
                 onPressed: () {
                   Navigator.of(context).pushNamed(
                     AppRoutes.USER_FORM,
@@ -37,26 +51,30 @@ class UserTile extends StatelessWidget {
               ),
               IconButton(
                 icon: const Icon(Icons.delete),
-                color: Colors.purpleAccent,
+                color: Theme.of(context).colorScheme.error, 
+                tooltip: 'Excluir', 
                 onPressed: () {
                   showDialog(
                     context: context,
-                    builder: (context) => AlertDialog(
+                    builder: (ctx) => AlertDialog( 
                       title: const Text('Excluir Usuário'),
-                      content: const Text('Tem certeza?'),
+                      content: const Text('Tem certeza que deseja excluir este usuário?'),
                       actions: [
                         TextButton(
                           child: const Text('Não'),
-                          onPressed: () => Navigator.of(context).pop(false),
+                          onPressed: () => Navigator.of(ctx).pop(false),
                         ),
                         TextButton(
-                          child: const Text('Sim'),
-                          onPressed: () => Navigator.of(context).pop(true),
+                          child: Text(
+                            'Sim',
+                            style: TextStyle(color: Theme.of(context).colorScheme.error), // Cor de ação destrutiva
+                          ),
+                          onPressed: () => Navigator.of(ctx).pop(true),
                         ),
                       ],
                     ),
                   ).then((confirmed) {
-                    if (confirmed) {
+                    if (confirmed != null && confirmed) {
                       Provider.of<Users>(context, listen: false).remove(user!);
                     }
                   });
